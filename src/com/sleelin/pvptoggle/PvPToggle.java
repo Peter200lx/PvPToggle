@@ -12,6 +12,7 @@ import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitTask;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -41,7 +42,7 @@ public class PvPToggle extends JavaPlugin {
 	// Initialise basic tools used by updater and logger 
 	public Logger log = Logger.getLogger("Minecraft");
 	private Runnable updateThread;
-	private int updateId = -1;
+	private BukkitTask updateTask = null;
 	private static final String RSS_URL = "http://dev.bukkit.org/server-mods/PvPToggle/files.rss";
 	private static String version;
 	private static String name;
@@ -461,13 +462,12 @@ public class PvPToggle extends JavaPlugin {
 			};
 		}
 		// 100 = 5 seconds from start, then a period according to config (default every 24h)
-		updateId = getServer().getScheduler().scheduleAsyncRepeatingTask(this, updateThread, 100, (Integer) globalsettings.get("updateinterval")*20);
+		updateTask = getServer().getScheduler().runTaskTimerAsynchronously(this, updateThread, 100, (Integer) globalsettings.get("updateinterval")*20);
 	}
 
 	private void stopUpdateThread() {
-		if(updateId != -1) {
-			getServer().getScheduler().cancelTask(updateId);
-			updateId = -1;
+		if((updateTask != null) && (updateTask.getTaskId() != -1)) {
+			getServer().getScheduler().cancelTask(updateTask.getTaskId());
 		}
 	}
 	
